@@ -14,47 +14,46 @@ Redistributions in binary form must reproduce the above copyright notice, this l
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #>
 
-$script:configurationData = @{
-    AllNodes = @(
-        @{
-            NodeName = 'localhost'
-            Path = 'C:\Users\temp'
-            SourcePath = 'C:\Users\temp'
-        }
-    )
-}
-
 <#
 .DESCRIPTION
-Configuration that requires ConfigurationData
-Should get parsed correctly.
-#>
-Configuration Test {
-    Import-DscResource -ModuleName MyDscResource
 
-    FileResource file
-    {
-        Path = $script:configurationData['AllNodes']['Path']
-        SourcePath = $script:configurationData['AllNodes']['SourcePath']
-        Ensure = 'Present'
+Class that defines each class in the VMware.PSDesiredStateConfiguration module as a
+Node with Edges and Dependencies - other classes with which the class interacts.
+#>
+class ClassNode {
+    [string] $Name
+
+    [string] $FileName
+
+    [string[]] $Dependencies
+
+    [ClassNode[]] $Edge
+
+    <#
+    .DESCRIPTION
+
+    Adds the specified dependency class name to the list of dependencies
+    for the current ClassNode.
+    #>
+    [void] AddDependency([string] $dependency) {
+        if ($null -eq $this.Dependencies) {
+            $this.Dependencies = @()
+        }
+
+        $this.Dependencies += $dependency
+    }
+
+    <#
+    .DESCRIPTION
+
+    Adds the specified edge ClassNode to the list of edges
+    for the current ClassNode.
+    #>
+    [void] AddEdge([ClassNode] $edge) {
+        if ($null -eq $this.Edge) {
+            $this.Edge = @()
+        }
+
+        $this.Edge += $edge
     }
 }
-
-$Script:expectedCompiled = [VmwDscConfiguration]::new(
-    'Test',
-    @(
-        [VmwDscNode]::new(
-            'localhost',
-            [VmwDscResource]::new(
-                'file',
-                'FileResource',
-                @{ ModuleName = 'MyDscResource'; RequiredVersion = '1.0' },
-                @{
-                    Path = $script:configurationData['AllNodes']['Path']
-                    SourcePath = $script:configurationData['AllNodes']['SourcePath']
-                    Ensure = 'Present'
-                }
-            )
-        )
-    )
-)

@@ -14,47 +14,53 @@ Redistributions in binary form must reproduce the above copyright notice, this l
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #>
 
-$script:configurationData = @{
-    AllNodes = @(
-        @{
-            NodeName = 'localhost'
-            Path = 'C:\Users\temp'
-            SourcePath = 'C:\Users\temp'
-        }
-    )
-}
-
 <#
 .DESCRIPTION
-Configuration that requires ConfigurationData
-Should get parsed correctly.
+
+Invokes the DSC Configuration with the 'Get' DSC method.
+Retrieves the dsc resources current states.
 #>
-Configuration Test {
-    Import-DscResource -ModuleName MyDscResource
+function Get-VmwDscConfiguration {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true,
+                   ValueFromPipeline = $true,
+                   ParameterSetName = 'Explicit_Configuration',
+                   Position = 0)]
+        [ValidateNotNullOrEmpty()]
+        [VmwDscConfiguration]
+        $Configuration,
 
-    FileResource file
-    {
-        Path = $script:configurationData['AllNodes']['Path']
-        SourcePath = $script:configurationData['AllNodes']['SourcePath']
-        Ensure = 'Present'
-    }
-}
+        [Parameter(Mandatory = $true,
+                   ParameterSetName = 'Last_Configuration',
+                   Position = 0)]
+        [Switch]
+        $ExecuteLastConfiguration,
 
-$Script:expectedCompiled = [VmwDscConfiguration]::new(
-    'Test',
-    @(
-        [VmwDscNode]::new(
-            'localhost',
-            [VmwDscResource]::new(
-                'file',
-                'FileResource',
-                @{ ModuleName = 'MyDscResource'; RequiredVersion = '1.0' },
-                @{
-                    Path = $script:configurationData['AllNodes']['Path']
-                    SourcePath = $script:configurationData['AllNodes']['SourcePath']
-                    Ensure = 'Present'
-                }
-            )
-        )
+        [Parameter(Mandatory = $false,
+                   ValueFromPipeline = $false,
+                   Position = 1)]
+        [ValidateNotNullOrEmpty()]
+        [PsObject]
+        $ConnectionFilter
     )
-)
+
+    $invokeParams = @{
+        Configuration = $Configuration
+        ExecuteLastConfiguration = $ExecuteLastConfiguration
+        ConnectionFilter = $ConnectionFilter
+        Method = 'Get'
+    }
+
+    $getResult = Invoke-VmwDscConfiguration @invokeParams -Verbose:$VerbosePreference
+
+    $result = New-Object -TypeName 'System.Collections.ArrayList'
+
+    foreach ($nodeStateResult in $getResult) {
+        $dscGetResult = [DscGetMethodResult]::new($nodeStateResult.OriginalNode, $nodeStateResult.InvokeResult)
+
+        $result.Add($dscGetResult) | Out-Null
+    }
+
+    $result.ToArray()
+}

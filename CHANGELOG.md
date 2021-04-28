@@ -1,6 +1,90 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## VMware.PSDesiredStateConfiguration 1.0.0.17 - 2021-04-28
+### Changed
+- Fix bug with **`Test-VmwDscConfiguration`** cmdlet on **`PowerShell 5.1`** that occurred due to **`NodeResult`** being **`PSObject`** instead of **`PSCustomObject`**. **`Select-Object -ExpandProperty InvokeResult`** doesn't work on **`PSObject`** on **`PowerShell 5.1`**.
+
+## 2021-03-08
+### Added
+- Added installation guide for **VMware.PSDesiredStateConfiguration** module.
+
+### Changed
+- Updated the **VMHostVssNic DSC Resource** documentation to be the same as the one in the [Wiki](https://github.com/vmware/dscr-for-vmware/wiki).
+
+## VMware.vSphereDSC 2.2.0.84 - 2021-02-24
+### Added
+- Added **DatastoreCluster DSC Resource** that is used to create, modify and remove **Datastore Clusters** in the specified **Datacenter** on the specified **vCenter Server**.
+- Added **DRSRule DSC Resource** that is used to create, modify and remove **DRS rules** for the specified **Cluster**.
+- Added **DatastoreClusterAddDatastore DSC Resource** that is used to add **Datastores** to the specified **Datastore Cluster**.
+- Added **VMHostVdsNic DSC Resource** that is used to modify the settings or remove **VMKernel NICs** connected to the specified **Distributed Port Group** on the specified **VDSwitch**.
+- Added **VMHostStorage DSC Resource** that is used to enable or disable the **software iSCSI support** for the specified **VMHost**.
+- Added **VMHostIScsiHbaVMKernelNic DSC Resource** that is used to **bind/unbind VMKernel Network Adapters** to/from the specified **iSCSI Host Bus Adapter**.
+
+### Changed
+- **VMHostVDSwitchMigration DSC Resource**: Added a new **MigratePhysicalNicsOnly** parameter to allow the user to choose to migrate only **Physical Network Adapters**. Extended the **DSC Resource** to create **distributed port groups** with **VLAN ID**.
+- **VMHostIScsiHba DSC Resource**: Added **IScsiName** property to configure the **IScsiName** of the **IScsiHba**.
+- **VDPortGroup DSC Resource**: Added **VLanId** property to configure the **VLanId** for a **Distributed Port Group**.
+- **VMHostAccount DSC Resource**: Fixed the bug with determiting the desired state, when the **ESXi account password** should be changed.
+- **VMHostVDSwitchMigration DSC Resource**: Fixed the bug with migrating **Physical Network Adapters** to **VDSwitch**. The **Physical Network Adapters** should be migrated with the **VMKernel Network Adapters** to avoid connectivity loss for the **ESXi** during the migration.
+- **VMHostVssTeaming DSC Resource**: Fixed bugs with **physical network adapters** when updating the **teaming policy** of the **standard switch**.
+- **NfsDatastore DSC Resource**: Moved name validation to **VmfsDatastore DSC Resource** due to not being applicable for **NfsDatastores**.
+
+## VMware.PSDesiredStateConfiguration 1.0.0.16 - 2021-02-24
+### Added
+- Added **New-VmwDscConfiguration** cmdlet which compiles a **DSC Configuration** into a **VmwDscConfiguration** object, which contains the name of the **DSC Configuration** and the **DSC Resources** defined in it.
+- Added **Start**, **Test** and **Get-VmwDscConfiguration** cmdlets which work with the **VmwDscConfiguration** object created by the **New-VmwDscConfiguration** cmdlet and apply the **Set**, **Test**, **Get** methods to the compiled **DSC Configuration**.
+- Added **vSphereNode** which is a special dynamic keyword that represents a connection to a **VIServer**. Each **vSphereNode** can contain **DSC Resources** from the module **VMware.vSphereDSC**. The **vSphere Nodes** along with the new execution engine allow the user to bundle **DSC Resources** and specify a common **VIServer** connection which gets reused.
+
+## VMware.PSDesiredStateConfiguration 0.0.0.16 - 2021-02-19
+### Changed
+- Modified the **VMware.PSDesiredStateConfiguration** module manifest to contain the **FunctionsToExport** to allow using the cmdlets without invoking **Import-Module** every time.
+
+## VMware.vSphereDSC 2.1.0.84 - 2021-02-15
+### Changed
+- Modified the **VMware.vSphereDSC** and **VMware.PSDesiredStateConfiguration** module manifests to contain the **CompatiblePSEditions** module manifest key with both values: **Desktop** and **Core**.
+
+## VMware.PSDesiredStateConfiguration 0.0.0.15 - 2021-02-15
+### Changed
+- Modified the **VMware.vSphereDSC** and **VMware.PSDesiredStateConfiguration** module manifests to contain the **CompatiblePSEditions** module manifest key with both values: **Desktop** and **Core**.
+
+## 2021-02-15
+### Changed
+- Modified the documentation of the **VMware.PSDesiredStateConfiguration** module to reflect the changes made in the **New-VmwDscConfiguration** cmdlet.
+
+## VMware.PSDesiredStateConfiguration 0.0.0.14 - 2021-02-14
+### Added
+- Added additional **DSC Configurations** with **ConfigurationData** for the **Unit Tests** in the **VMware.PSDesiredStateConfiguration** module.
+- Added additional **Unit Tests** for the **ConfigurationName** parameter of the **New-VmwDscConfiguration** cmdlet.
+
+### Changed
+- Fixed bug with retrieving dynamic keywords from a **DSC Configuration Script Block**.
+- Refactored the **New-VmwDscConfiguration Unit Tests** to work with the new cmdlet parameters.
+
+## VMware.PSDesiredStateConfiguration 0.0.0.13 - 2021-02-14
+### Added
+- Implemented ordering of public classes when importing the **VMware.PSDesiredStateConfiguration** module.
+
+### Changed
+- Extracted all classes in the **VMware.PSDesiredStateConfiguration** module in separate files.
+- Extracted all functions in the **VMware.PSDesiredStateConfiguration** module in separate files.
+
+## VMware.PSDesiredStateConfiguration 0.0.0.12 - 2021-02-14
+### Added
+- Added a new **Path** parameter for the **New-VmwDscConfiguration** cmdlet which specifies a file path to file containing **DSC Configurations**.
+- Added a new **ConfigurationName** parameter for the **New-VmwDscConfiguration** cmdlet which specifies the **DSC Configuration** to compile from the specified **DSC Configurations** file.
+
+### Changed
+- Renamed the **CustomParams** parameter of the **New-VmwDscConfiguration** cmdlet to **Parameters** which works with script parameters instead of configuration parameters only.
+
+### Removed
+- Removed the **ConfigName** parameter from the  **New-VmwDscConfiguration** cmdlet.
+- Removed the **ConfigurationData** parameter from the  **New-VmwDscConfiguration** cmdlet.
+
+## VMware.PSDesiredStateConfiguration 0.0.0.11 - 2021-01-25
+### Changed
+- Extended the validation of the key properties of a **DSC Resource** in the **VMware.PSDesiredStateConfiguration** module to throw an exception when a key property is **$null**.
+
 ## VMware.PSDesiredStateConfiguration 0.0.0.10 - 2021-01-25
 ### Changed
 - Modified the **License** logic in the **VMware.PSDesiredStateConfiguration** build to cut the first two lines of the **License** in **License.txt**.
@@ -66,7 +150,7 @@ All notable changes to this project will be documented in this file.
 
 ## VMware.PSDesiredStateConfiguration 0.0.0.6 - 2020-12-18
 ### Changed
-- Fixed the bug with the same references for **DSC Resources** when multiple **vSphereNodes** are passed as array in a **DSC Configuration**. 
+- Fixed the bug with the same references for **DSC Resources** when multiple **vSphereNodes** are passed as array in a **DSC Configuration**.
 
 ## VMware.vSphereDSC 2.1.0.77 - 2020-12-17
 ### Added
